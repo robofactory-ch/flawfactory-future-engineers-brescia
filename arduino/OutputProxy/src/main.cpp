@@ -1,104 +1,113 @@
 #include <Arduino.h>
+#include <Servo.h>
 
-#define BUFFER_SIZE 64 // Size of the ring buffer
+const int servoPin = 2;
 
-char ringBuffer[BUFFER_SIZE]; // The ring buffer
-int head = 0;                 // Points to the next byte to be written
-int tail = 0;                 // Points to the next byte to be read
+Servo servo;
 
-void parseMessage(char *msg)
+const int enaPin = 3;
+const int in1Pin = 7;
+const int in2Pin = 8;
+
+int current_speed = 0;
+int set_speed = 0;
+int acc_time = 3;
+int last_acc_time = 0;
+
+
+int middle = 70; // +55 -55
+int degree_max = 125;
+int degree_min = 15;
+int current_degree = 0;
+int set_degree = 0;
+
+void drive(int speed)
 {
-  char cmd[3];         // To store the 2-char command
-  float args[10];      // To store argument values
-  char arg_labels[10]; // To store argument labels
-  int arg_count = 0;
-
-  // Scan the 2-char command
-  sscanf(msg, "%2s", cmd);
-
-  char *p = msg + 3; // Start parsing arguments after CMD
-
-  // Parse all arguments (e.g., X, Y, Z with corresponding float values)
-  while (*p != '\0')
+  if (speed > 255)
   {
-    char label;
-    float value;
-
-    if (sscanf(p, "%c%f", &label, &value) == 2)
-    {
-      arg_labels[arg_count] = label;
-      args[arg_count] = value;
-      arg_count++;
-    }
-
-    // Move pointer to the next argument
-    while (*p != ' ' && *p != '\0')
-    {
-      p++;
-    }
+    speed = 255;
   }
-
-  // Output parsed message for debugging
-  Serial.print("CMD: ");
-  Serial.println(cmd);
-
-  for (int i = 0; i < arg_count; i++)
+  else if (speed < -255)
   {
-    Serial.print(arg_labels[i]);
-    Serial.print(": ");
-    Serial.println(args[i]);
+    speed = -255;
   }
+  if (millis() - last_acc_time < acc_time)
+  {
+    return;
+  }
+  last_acc_time = millis();
+  if (abs(speed - current_speed) > 1)
+  {
+    current_speed = current_speed + (speed - current_speed) / fabs(speed - current_speed) * 1;
+  }
+  else if (speed == 0)
+  {
+    current_speed = 0;
+  }
+  if (current_speed > 0)
+  {
+    digitalWrite(in1Pin, LOW);
+    digitalWrite(in2Pin, HIGH);
+  }
+  else if (current_speed < 0)
+  {
+    digitalWrite(in1Pin, HIGH);
+    digitalWrite(in2Pin, LOW);
+  }
+  else
+  {
+    digitalWrite(in1Pin, LOW);
+    digitalWrite(in2Pin, LOW);
+  }
+  analogWrite(enaPin, abs(current_speed));
 }
 
-void processMessage()
+void steer(int angle)
 {
-  // Message extraction from ring buffer
-  char message[BUFFER_SIZE];
-  int index = 0;
-
-  while (tail != head)
+  angle = angle + middle;
+  if (angle > degree_max)
   {
-    char currentChar = ringBuffer[tail];
-    tail = (tail + 1) % BUFFER_SIZE;
-
-    if (currentChar == '\n')
-    { // End of message
-      break;
-    }
-
-    message[index++] = currentChar;
+    angle = degree_max;
   }
-
-  message[index] = '\0'; // Null-terminate the message string
-
-  // Parse the extracted message
-  parseMessage(message);
+  else if (angle < degree_min)
+  {
+    angle = degree_min;
+  }
+  servo.write(angle);
 }
 
 void setup()
 {
-  Serial.begin(9600); // Initialize serial communication
+  pinMode(enaPin, OUTPUT);
+  pinMode(in1Pin, OUTPUT);
+  pinMode(in2Pin, OUTPUT);
+
+  servo.attach(servoPin);
+
+  digitalWrite(in1Pin, LOW);
+  digitalWrite(in2Pin, LOW);
+  analogWrite(enaPin, 0);
+  Serial.begin(9600);
+  
 }
+
+int a = 0;
 
 void loop()
 {
-  // Read serial data and store it in the ring buffer
-  while (Serial.available() > 0)
+  Serial.println(set_degree);
+  if (Serial.available() > 0)
   {
-    char incomingByte = Serial.read();
-    ringBuffer[head] = incomingByte;
-    head = (head + 1) % BUFFER_SIZE; // Move the head and wrap it around
-
-    // If head meets tail, it means buffer overflow, so move tail forward
-    if (head == tail)
+    a = Serial.read();
+    if (a == '1')
     {
-      tail = (tail + 1) % BUFFER_SIZE;
+      set_degree++;
     }
-
-    // Check for the end of the message (newline '\n')
-    if (incomingByte == '\n')
+    else if (a == '2')
     {
-      processMessage();
+      set_degree--;
     }
   }
+  steer(set_degree);
+  drive(set_speed);
 }
