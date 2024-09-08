@@ -1,0 +1,1 @@
+rsync -Wave ssh raspberry/ pi@car.local:/home/pi/program

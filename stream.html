@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Color and Depth Streams</title>
+  </head>
+  <body>
+    <div>
+      <h2>Stream A</h2>
+      <img id="colorStream" src="" alt="Color Stream" />
+    </div>
+    <div>
+      <h2>Stream B</h2>
+      <img id="depthStream" src="" alt="Depth Stream" />
+    </div>
+
+    <button onclick="connectWebSocket()">Connect</button>
+    <script>
+      var ws;
+
+      // Function to connect to the WebSocket server
+      function connectWebSocket() {
+        ws = new WebSocket("ws://car.local:8765");
+
+        // Event handler for receiving messages from the server
+        ws.onmessage = function (event) {
+          let data = JSON.parse(event.data);
+          if (data.a) {
+            var imageSrc = "data:image/jpeg;base64," + data.a;
+            document.getElementById("colorStream").src = imageSrc;
+          }
+
+          if (data.b) {
+            var imageSrc = "data:image/jpeg;base64," + data.b;
+            document.getElementById("depthStream").src = imageSrc;
+          }
+        };
+
+        // Event handler for when the WebSocket connection closes
+        ws.onclose = function () {
+          console.log("WebSocket connection closed");
+        };
+        // setTimeout(connectWebSocket(), 2000);
+      }
+
+      // Connect to WebSocket when the page loads
+      window.onload = function () {
+        connectWebSocket();
+      };
+    </script>
+  </body>
+</html>
