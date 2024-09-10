@@ -10,6 +10,7 @@ import time
 from config import *
 from picamera2 import Picamera2
 from libcamera import controls
+import serial
 
 picam2 = Picamera2()
 picam2.start()
@@ -196,6 +197,11 @@ def drive(contours: list[Contour], walls: list[Wall]) -> tuple[float, float]:
   # print("steering inputs:", inputs)
   agg = max(-1.0, min(1.0, float(sum(inputs.values()))))
   print("aggregate:", agg)
+  message = "d" + str(int(80)) + "\n"
+  ser.write(message.encode())
+  message = "s" + str(int(agg)*55) + "\n"
+  ser.write(message.encode())
+  print(message)
   return (agg, 0.0)
 
 def encode_image(image):
@@ -214,7 +220,7 @@ def process_walls(edges_img: np.ndarray, contours: list[Contour]):
 
   walls = []
 
-  wall_heights = np.argmax(edges_img, axis=0)
+  wall_heights = np.argmax(edges_img, axis=0) 
 
   for c in contours:
     half_width = (c.width + 4) // 2
@@ -378,6 +384,7 @@ async def image_stream(websocket: WebSocketServerProtocol, path):
             }
     await websocket.send(json.dumps(data))
 
+ser = serial.Serial('/dev/ttyUSB0', 9600)
 
 start_server = serve(image_stream, "0.0.0.0", 8765)
 asyncio.get_event_loop().run_until_complete(start_server)
