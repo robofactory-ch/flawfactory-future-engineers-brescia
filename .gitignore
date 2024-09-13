@@ -2,3 +2,4 @@
 env/
 .DS_Store
 arduino/OutputProxy/.DS_Store
+*.pyc
