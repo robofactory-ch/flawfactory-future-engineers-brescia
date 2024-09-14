@@ -31,6 +31,11 @@ class StateMachine:
         return False
 
 
+    if self.current_state == "PD-CENTER" and time_diff > 0.95 and self.turns_left <= 0:
+      self.transitionState("DONE")
+      return True
+    
+
     # Hold the current state for a minimum of x seconds
     if time_diff < 0.15:
       return False
@@ -51,6 +56,7 @@ class StateMachine:
     MIN_PORTION = 0.25
     if portion_blue > MIN_PORTION:
       if self.current_state != "TURNING-R":
+        self.turns_left -= 1
         self.transitionState("TURNING-L")
       else:
         self.transitionState("PD-CENTER")
@@ -58,6 +64,7 @@ class StateMachine:
     
     if portion_orange > MIN_PORTION:
       if self.current_state != "TURNING-L":
+        self.turns_left -= 1
         self.transitionState("TURNING-R")
       else:
         self.transitionState("PD-CENTER")
