@@ -5,6 +5,8 @@ import math
 from time import sleep, time
 import cv2
 import numpy as np
+import serial
+import serial.tools.list_ports
 from websockets import WebSocketServerProtocol, serve
 from config import ConfigLoader
 from helpers import Pillar, extract_ROI
@@ -13,7 +15,6 @@ from statemachine import StateMachine
 from picamera2 import Picamera2
 
 #TODO: round direction detection
-#TODO: Add web viewer, config editor etc.
 #TODO: Add serial communication
 #TODO: Pillars handling
 #TODO: PD tuning
@@ -31,6 +32,18 @@ picam2.set_controls({
     # controls.AWB_TEMPERATURE: fixed_temperature
 })
 
+
+
+ports = serial.tools.list_ports.comports()
+
+
+try:
+  ser = serial.Serial(configloader.get_property("ArduinoSerialPort"), 9600)
+except:
+  print("Arduino not connected, available devices")
+  ser = None
+  for port, desc, hwid in sorted(ports):
+        print("{}: {} [{}]".format(port, desc, hwid))
 
 def cycle():
   global sm, last_error, kp, kd
@@ -95,19 +108,19 @@ def cycle():
 
   turn_correction = 0.8
 
-  if sm.current_state == "PD-CENTER":
-    error = portion_black_l - portion_black_r
-    correction = error * kp + (error - last_error) * kd
-  elif sm.current_state == "PD-RIGHT":
-    error = 2 * (REF_PORTION - portion_black_r)
-    correction = error * kp + (error - last_error) * kd
-  elif sm.current_state == "PD-RIGHT":
-    error = 2 * (portion_black_l - REF_PORTION)
-    correction = error * kp + (error - last_error) * kd
+  # follow the left wall, if we're going counter-clockwise
+  if sm.current_state == "PD-CENTER" and sm.round_dir == -1 or sm.current_state == "PD-RIGHT":
+    error = REF_PORTION - portion_black_r
 
-  elif sm.current_state == "TURNING-L":
+  # follow the right wall, if we're going clockwise
+  if sm.current_state == "PD-CENTER" and sm.round_dir == 1 or sm.current_state == "PD-LEFT":
+    error = portion_black_l - REF_PORTION
+  
+  correction = error * kp + (error - last_error) * kd
+
+  if sm.current_state == "TURNING-L":
     correction = turn_correction
-  elif sm.current_state == "TURNING-R":
+  if sm.current_state == "TURNING-R":
     correction = -turn_correction
 
   #TODO: Implement Pillars
@@ -115,7 +128,20 @@ def cycle():
   
   else:
     correction = 0.0
-  #TODO: Write to serial
+  
+
+  correction = max(-1.0, min(1.0, correction))
+  MAX_STEERING_ANGLE = 55.0
+  steering_angle = correction * MAX_STEERING_ANGLE
+
+
+  if ser:
+    message = "d" + str(int(80)) + "\n"
+    ser.write(message.encode())
+    message = "s" + str(steering_angle) + "\n"
+    ser.write(message.encode())
+
+  
 
   # viz stuff
   cv2.putText(viz, f"State: {sm.current_state} {round(time() - sm.last_state_time, 2)}s", (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
