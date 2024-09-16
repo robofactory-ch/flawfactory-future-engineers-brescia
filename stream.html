@@ -6,22 +6,36 @@
     <title>Color and Depth Streams</title>
   </head>
   <body>
+    <input type="text" id="ip" value="car.local" />
+    <button onclick="connectWebSocket()">Connect</button>
+
     <div>
       <h2>Stream A</h2>
+      <select name="streamAselect" id="select-a" onchange="selectStream()"></select>
+        <option value="">--</option>
+      </select>
       <img id="colorStream" src="" alt="Color Stream" />
     </div>
     <div>
       <h2>Stream B</h2>
+      <select name="streamBselect" id="select-b" onchange="selectStream()"></select>
+        <option value="">--</option>
+      </select>
       <img id="depthStream" src="" alt="Depth Stream" />
     </div>
 
-    <button onclick="connectWebSocket()">Connect</button>
     <script>
+      let ip_input = document.getElementById("ip");
+      let selectA = document.getElementById("select-a");
+      let selectB = document.getElementById("select-b");
+
       var ws;
+
+      var availableStreams = [];
 
       // Function to connect to the WebSocket server
       function connectWebSocket() {
-        ws = new WebSocket("ws://car.local:8765");
+        ws = new WebSocket(`ws://${ip_input.value}:8765`);
 
         // Event handler for receiving messages from the server
         ws.onmessage = function (event) {
@@ -35,6 +49,11 @@
             var imageSrc = "data:image/jpeg;base64," + data.b;
             document.getElementById("depthStream").src = imageSrc;
           }
+          if (data.streams) {
+            console.log(data.streams);
+            availableStreams = data.streams;
+            buildSelects();
+          }
         };
 
         // Event handler for when the WebSocket connection closes
@@ -42,6 +61,25 @@
           console.log("WebSocket connection closed");
         };
         // setTimeout(connectWebSocket(), 2000);
+      }
+
+      function buildSelects() {
+        selectA.innerHTML = "";
+        selectB.innerHTML = "";
+        availableStreams.forEach((stream) => {
+          let option = document.createElement("option");
+          option.value = stream;
+          option.text = stream;
+          selectA.appendChild(option);
+          let option2 = document.createElement("option");
+          option2.value = stream;
+          option2.text = stream;
+          selectB.appendChild(option2);
+        });
+      }
+
+      function selectStream() {
+        ws.send(JSON.stringify({ streamA: selectA.value, streamB: selectB.value }));
       }
 
       // Connect to WebSocket when the page loads

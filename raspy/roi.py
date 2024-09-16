@@ -37,22 +37,22 @@ picam2.set_controls({
 ports = serial.tools.list_ports.comports()
 
 
-try:
-  ser = serial.Serial(configloader.get_property("ArduinoSerialPort"), 9600)
-except:
-  print("Arduino not connected, available devices")
-  ser = None
-  for port, desc, hwid in sorted(ports):
-        print("{}: {} [{}]".format(port, desc, hwid))
-
+# try:
+#   ser = serial.Serial(configloader.get_property("ArduinoSerialPort"), 9600)
+# except:
+#   print("Arduino not connected, available devices")
+#   ser = None
+#   for port, desc, hwid in sorted(ports):
+#         print("{}: {} [{}]".format(port, desc, hwid))
+ser = None
 def cycle():
   global sm, last_error, kp, kd
 
   # image reading, usually form camera
   img = cv2.cvtColor(picam2.capture_array(), cv2.COLOR_RGB2BGR)
   
-  undistorted = pipeline.undistort(img)
-  color_image = pipeline.crop(undistorted)
+  # undistorted = pipeline.undistort(img)
+  color_image = pipeline.crop(img)
 
   # copy for webviewer visualization
   viz = color_image.copy()
@@ -136,8 +136,8 @@ def cycle():
 
 
   if ser:
-    message = "d" + str(int(80)) + "\n"
-    ser.write(message.encode())
+    # message = "d" + str(int(80)) + "\n"
+    # ser.write(message.encode())
     message = "s" + str(steering_angle) + "\n"
     ser.write(message.encode())
 
@@ -190,11 +190,28 @@ async def img_stream(websocket: WebSocketServerProtocol, path):
   kp = configloader.get_property("PD")['kp']
   kd = configloader.get_property("PD")['kd']
 
+  has_sent_streams_info = False
+  current_streams = ["viz", "black"]
+
   while True:
     products = cycle() 
+    if not has_sent_streams_info:
+      has_sent_streams_info = True
+      await websocket.send(json.dumps({
+        "streams": list(products.keys())
+      }))
+    
+    # check if the websocket has sent a stream request, wait at most for 0.05 seconds
+    try:
+      res = json.loads(await asyncio.wait_for(websocket.recv(), timeout=0.05))
+      current_streams[0] = res["streamA"]
+      current_streams[1] = res["streamB"]
+    except:
+      pass
+
     data = {
-      "a": encode_image(products["viz"]),
-      "b": encode_image(products["black"])
+      "a": encode_image(products[current_streams[0]]),
+      "b": encode_image(products[current_streams[1]])
     }
     await websocket.send(json.dumps(data))
     

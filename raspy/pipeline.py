@@ -2,11 +2,11 @@ import math
 import cv2
 import numpy as np
 
-from config import configloader
+from config import ConfigLoader
 from helpers import Pillar
 
 class Pipeline:
-  def __init__(self, configloader: configloader):
+  def __init__(self, configloader: ConfigLoader):
     self.configloader = configloader
 
   def undistort(self, image: np.ndarray):
@@ -78,7 +78,7 @@ class Pipeline:
     """
       Extracts pillars from filtered image
     """
-    minSize = float(configloader.get_property("contours")['minSize'])
+    minSize = float(self.configloader.get_property("contours")['minSize'])
     edges = cv2.Canny(cv2.medianBlur(cv2.copyMakeBorder(imgIn[:], 2, 2, 2, 2, cv2.BORDER_CONSTANT, value=0), 3), 30, 200)
 
     contours, hierarchy = cv2.findContours(edges, 

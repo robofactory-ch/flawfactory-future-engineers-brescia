@@ -1,1 +1,1 @@
-rsync -Wave ssh raspy/ pi@car.local:/home/pi/program
+rsync -Wave ssh raspy/ pi@car2.local:/home/pi/program
