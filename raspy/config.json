@@ -2,7 +2,7 @@
   "version": 1,
   "filters": {
     "GRAY": 65,
-    "REDLO": [0, 100, 60],
+    "REDLO": [0, 100, 80],
     "REDHI": [5, 255, 255],
     "GREENLO": [50, 50, 10],
     "GREENHI": [80, 255, 255],
@@ -12,7 +12,7 @@
     "BLUEHI": [130, 255, 255]
   },
   "contours": {
-    "minSize": 4.0
+    "minSize": 80.0
   },
   "camera": {
     "mtx": [
@@ -21,11 +21,12 @@
       [0.0, 0.0, 1.0]
     ],
     "dist": [[-0.64066312, 0.41901729, -0.00366722, 0.01957175, -0.14404429]],
-    "crop_height": 260
+    "crop_height": 265
   },
   "ROI": {},
   "PD": {
-    "kp": 1.0,
-    "kd": 3.5
-  }
+    "kp": 5.0,
+    "kd": 10.0
+  },
+  "ArduinoSerialPort": "/dev/ttyUSB0"
 }

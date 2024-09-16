@@ -37,14 +37,14 @@ picam2.set_controls({
 ports = serial.tools.list_ports.comports()
 
 
-# try:
-#   ser = serial.Serial(configloader.get_property("ArduinoSerialPort"), 9600)
-# except:
-#   print("Arduino not connected, available devices")
-#   ser = None
-#   for port, desc, hwid in sorted(ports):
-#         print("{}: {} [{}]".format(port, desc, hwid))
-ser = None
+try:
+  ser = serial.Serial(configloader.get_property("ArduinoSerialPort"), 9600)
+except:
+  print("Arduino not connected, available devices")
+  ser = None
+  for port, desc, hwid in sorted(ports):
+        print("{}: {} [{}]".format(port, desc, hwid))
+
 def cycle():
   global sm, last_error, kp, kd
 
@@ -77,8 +77,8 @@ def cycle():
 
   # l and r ROIs used for PD control, to keep the car in the middle of the track and away from walls
   roi_width = 100
-  roi_left = extract_ROI(rgbl["black"], [0, 0], [roi_width, 480])
-  roi_right = extract_ROI(rgbl["black"], [640-roi_width, 0], [640, 480])
+  roi_left = extract_ROI(rgbl["black"], [0, 0], [roi_width, 150])
+  roi_right = extract_ROI(rgbl["black"], [640-roi_width, 0], [640, 150])
 
   portion_black_l = cv2.countNonZero(roi_left) / (roi_left.shape[0] * roi_left.shape[1])
   portion_black_r = cv2.countNonZero(roi_right) / (roi_right.shape[0] * roi_right.shape[1])
@@ -101,12 +101,12 @@ def cycle():
 
   # This is the refrence value for the single side PD control, 
   # eg. how much black should be on the left side when the car follows the left outer wall
-  REF_PORTION = 0.25
+  REF_PORTION = 0.38
 
   # error value
   error = 0.0
 
-  turn_correction = 0.8
+  turn_correction = 0.75
 
   # follow the left wall, if we're going counter-clockwise
   if sm.current_state == "PD-CENTER" and sm.round_dir == -1 or sm.current_state == "PD-RIGHT":
@@ -119,34 +119,44 @@ def cycle():
   correction = error * kp + (error - last_error) * kd
 
   if sm.current_state == "TURNING-L":
-    correction = turn_correction
-  if sm.current_state == "TURNING-R":
     correction = -turn_correction
+  if sm.current_state == "TURNING-R":
+    correction = turn_correction
+
+  if sm.current_state == "DONE":
+    correction = 0.0
+    print("---- DONE ----")
+    message = "d" + str(int(0)) + "\n"
+    ser.write(message.encode())
+    print(message)
+    message = "s0\n"
+    ser.write(message.encode())
+    # exit()
+    sleep(5)
+    exit()
 
   #TODO: Implement Pillars
 
   
-  else:
-    correction = 0.0
+  # else:
+  #   correction = 0.0
   
 
   correction = max(-1.0, min(1.0, correction))
-  MAX_STEERING_ANGLE = 55.0
+  MAX_STEERING_ANGLE = -55.0
   steering_angle = correction * MAX_STEERING_ANGLE
 
 
   if ser:
-    # message = "d" + str(int(80)) + "\n"
-    # ser.write(message.encode())
-    message = "s" + str(steering_angle) + "\n"
+    message = "d" + str(int(80)) + "\n"
     ser.write(message.encode())
-
-  
+    message = "s " + str(int(steering_angle)) + "\n"
+    ser.write(message.encode())
 
   # viz stuff
   cv2.putText(viz, f"State: {sm.current_state} {round(time() - sm.last_state_time, 2)}s", (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
   cv2.putText(viz, f"Errs: {round(portion_black_l-0.25, 2)} {round(portion_black_l-portion_black_r, 2)} {round(0.25-portion_black_r, 2)}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
-
+  cv2.putText(viz, f"{12 - sm.turns_left} / 12", (580, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
   for p in pillars:
     cv2.line(viz, (p.screen_x, 0), (p.screen_x, 480), (0, 0, 255) if p.color == "RED" else (0, 255, 0), 2)
 
@@ -178,7 +188,7 @@ def main():
     cycle()
 
 def encode_image(image):
-    retval, buffer = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+    retval, buffer = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 70])
     base64_str = base64.b64encode(buffer).decode('utf-8')
     return base64_str
 
@@ -192,28 +202,32 @@ async def img_stream(websocket: WebSocketServerProtocol, path):
 
   has_sent_streams_info = False
   current_streams = ["viz", "black"]
+  try:
+    while True:
+      products = cycle() 
+      if not has_sent_streams_info:
+        has_sent_streams_info = True
+        await websocket.send(json.dumps({
+          "streams": list(products.keys())
+        }))
+      
+      # check if the websocket has sent a stream request, wait at most for 0.05 seconds
+      try:
+        res = json.loads(await asyncio.wait_for(websocket.recv(), timeout=0.01))
+        current_streams[0] = res["streamA"]
+        current_streams[1] = res["streamB"]
+      except:
+        pass
 
-  while True:
-    products = cycle() 
-    if not has_sent_streams_info:
-      has_sent_streams_info = True
-      await websocket.send(json.dumps({
-        "streams": list(products.keys())
-      }))
-    
-    # check if the websocket has sent a stream request, wait at most for 0.05 seconds
-    try:
-      res = json.loads(await asyncio.wait_for(websocket.recv(), timeout=0.05))
-      current_streams[0] = res["streamA"]
-      current_streams[1] = res["streamB"]
-    except:
-      pass
-
-    data = {
-      "a": encode_image(products[current_streams[0]]),
-      "b": encode_image(products[current_streams[1]])
-    }
-    await websocket.send(json.dumps(data))
+      data = {
+        "a": encode_image(products[current_streams[0]]),
+        "b": encode_image(products[current_streams[1]])
+      }
+      await websocket.send(json.dumps(data))
+  except:
+    ser.write("s0\n".encode())
+    ser.write("d0\n".encode())
+    exit()
     
 
 if __name__ == "__main__":

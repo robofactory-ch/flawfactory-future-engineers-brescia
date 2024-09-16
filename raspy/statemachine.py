@@ -7,7 +7,7 @@ class StateMachine:
 
   current_state = "STARTING"
   last_state_time = 0.0
-  round_dir = 0
+  round_dir = -1
   turns_left = 12
 
   def __init__(self, isPillarRound: bool = False) -> None:
@@ -31,19 +31,19 @@ class StateMachine:
         return False
 
 
-    if self.current_state == "PD-CENTER" and time_diff > 0.95 and self.turns_left <= 0:
+    if self.current_state == "PD-CENTER" and time_diff > 2.6 and self.turns_left <= 0:
       self.transitionState("DONE")
       return True
     
 
     # Hold the current state for a minimum of x seconds
-    if time_diff < 0.15:
+    if time_diff < 0.8:
       return False
     
 
     # We always finnish a turn after this timeout, no matter what. 
     # PD shall deal with straightening out
-    TURN_TIMEOUT = 0.5
+    TURN_TIMEOUT = 1.0
     if self.current_state in ["TURNING-L", "TURNING-R"]:
       if time_diff > TURN_TIMEOUT:
         self.transitionState("PD-CENTER")
