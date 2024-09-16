@@ -90,6 +90,8 @@ def cycle():
   pillars_g = pipeline.get_pillars(rgbl["green"], "GREEN")
   pillars = pillars_r + pillars_g
 
+  pillars.sort(key=lambda x: x.width*x.height)
+
   # A state machine is used to model the car's behavior
   # This checks if the car should transition to a new state, and if so, transitions
   # states may be PD-CENTER, PD-RIGHT, PD-LEFT, TURNING-L, TURNING-R, etc.
@@ -99,25 +101,33 @@ def cycle():
 
   # PD control
 
-  # This is the refrence value for the single side PD control, 
+  # This is the reference value for the single side PD control, 
   # eg. how much black should be on the left side when the car follows the left outer wall
-  REF_PORTION = 0.38
+  REF_PORTION = 0.39
 
   # error value
   error = 0.0
 
   turn_correction = 0.75
 
+  PD_STATES = ["PD-CENTER", "PD-RIGHT", "PD-LEFT"]
+
+  if sm.current_state == "PD-LEFT":
+    REF_PORTION = 0.15
+  if sm.current_state == "PD-RIGHT":
+    REF_PORTION = 0.85
+
   # follow the left wall, if we're going counter-clockwise
-  if sm.current_state == "PD-CENTER" and sm.round_dir == -1 or sm.current_state == "PD-RIGHT":
+  if sm.current_state in PD_STATES and sm.round_dir == -1:
     error = REF_PORTION - portion_black_r
 
   # follow the right wall, if we're going clockwise
-  if sm.current_state == "PD-CENTER" and sm.round_dir == 1 or sm.current_state == "PD-LEFT":
+  if sm.current_state in PD_STATES and sm.round_dir == 1:
     error = portion_black_l - REF_PORTION
   
   correction = error * kp + (error - last_error) * kd
 
+  
   if sm.current_state == "TURNING-L":
     correction = -turn_correction
   if sm.current_state == "TURNING-R":

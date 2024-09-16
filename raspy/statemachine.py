@@ -7,8 +7,10 @@ class StateMachine:
 
   current_state = "STARTING"
   last_state_time = 0.0
-  round_dir = -1
+  round_dir = 0
   turns_left = 12
+
+  _scheduled_state = None
 
   def __init__(self, isPillarRound: bool = False) -> None:
     self.last_state_time = time()
@@ -17,9 +19,21 @@ class StateMachine:
   def transitionState(self, new_state: str):
     self.current_state = new_state
     self.last_state_time = time()
+  
+  def scheduleStateTransition(self, new_state: str, time_diff: float):
+    self._scheduled_state = (new_state, time() + time_diff)
 
   def shouldTransitionState(self, portion_orange: float, portion_blue: float, pillars: list[Pillar]):
     time_diff = time() - self.last_state_time
+
+    if self._scheduled_state is not None:
+      new_state, scheduled_time = self._scheduled_state
+      if time() > scheduled_time:
+        print("Scheduled state transition to", new_state)
+        self.transitionState(new_state)
+        self._scheduled_state = None
+        return True
+      return False
     
     if self.current_state == "STARTING":
       if self.round_dir != 0:
@@ -27,12 +41,12 @@ class StateMachine:
         return True
       else:
         #TODO: Implement round direction detection
-        round_dir = -1
+        self.round_dir = -1
         return False
 
 
-    if self.current_state == "PD-CENTER" and time_diff > 2.6 and self.turns_left <= 0:
-      self.transitionState("DONE")
+    if self.current_state == "PD-CENTER" and self.turns_left <= 0 and self._scheduled_state is None:
+      self.scheduleStateTransition("DONE", 2.6)
       return True
     
 
@@ -43,7 +57,7 @@ class StateMachine:
 
     # We always finnish a turn after this timeout, no matter what. 
     # PD shall deal with straightening out
-    TURN_TIMEOUT = 1.0
+    TURN_TIMEOUT = 0.85
     if self.current_state in ["TURNING-L", "TURNING-R"]:
       if time_diff > TURN_TIMEOUT:
         self.transitionState("PD-CENTER")
@@ -57,7 +71,7 @@ class StateMachine:
     if portion_blue > MIN_PORTION:
       if self.current_state != "TURNING-R":
         self.turns_left -= 1
-        self.transitionState("TURNING-L")
+        self.scheduleStateTransition("TURNING-L", 0.6)
       else:
         self.transitionState("PD-CENTER")
       return True
@@ -65,12 +79,13 @@ class StateMachine:
     if portion_orange > MIN_PORTION:
       if self.current_state != "TURNING-L":
         self.turns_left -= 1
-        self.transitionState("TURNING-R")
+        self.scheduleStateTransition("TURNING-R", 0.6)
       else:
         self.transitionState("PD-CENTER")
       return True
     
     if len(pillars) > 0 and self.isPillarRound:
+      # Pillars are already sorted by distance, as their projected size is proportional to their distance
       next_pillar = pillars[0]
       if self.current_state == "PD-CENTER":
         if next_pillar.color == "RED":
