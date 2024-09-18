@@ -1,6 +1,7 @@
 # FlawFactory
 
 ![FlawFactory Logo](/media/flawfactory.png)
+[![WRO - Future Engineers](https://img.shields.io/badge/WRO-Future_Engineers-2e52af)](https://)
 
 **This is the github repository for team FlawFactory for WRO 2024 Brescia. You'll find our documentation in this readme**
 
@@ -102,6 +103,12 @@ When handling the HSV color space, special care is needed for colors near the re
 <!-- The performance videos must demonstrate the performance of the vehicle from start to finish for each challenge. The videos could include an overlay of commentary, titles or animations. The video could also include aspects of section 1, 2 or 3 -->
 
 ## Videos
+
+<!-- https://michaelcurrin.github.io/badge-generator/#/generic -->
+
+[![YouTube - Opening Race](https://img.shields.io/badge/YouTube-▶️%20Opening_Race-df3e3e)](https://www.youtube.com/watch?v=waIHJP2l4eQ)
+
+[![YouTube - Obstacle Race](https://img.shields.io/badge/YouTube-▶️%20Obstacle_Race-df3e3e)](https://)
 
 ## Enabling Reproducibility
 
