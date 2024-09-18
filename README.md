@@ -137,7 +137,7 @@ In the image above you can see the robot detecting the red and green pillars. Af
 
 To enable the reproduction of our robot, we provide the following installation instructions:
 
-1. Install rapsberry pi os on your raspberry pi using the [official guide](https://www.raspberrypi.org/documentation/installation/installing-images/README.md)
+1. Install rapsberry pi os on your raspberry pi using the [official guide](https://www.raspberrypi.org/documentation/installation/installing-images/README.md) While the os is installing, you can falsh the arduino code to the arduino nano. The arduino code can be found in the [arduino](/arduino/OutputProxy) folder. The code can be uploaded using platformIO.
 2. After booting up the raspberry pi, connect via ssh, and install the following packages:
 
 ```bash
