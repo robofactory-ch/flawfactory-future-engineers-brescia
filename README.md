@@ -1,6 +1,6 @@
 # FlawFactory
 
-[FlawFactory Logo](/media/logo.png)
+![FlawFactory Logo](/media/logo.jpg)
 
 **This is the github repository for team FlawFactory for WRO 2024 Brescia. You'll find our documentation in this readme**
 
