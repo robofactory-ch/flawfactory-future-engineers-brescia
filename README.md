@@ -118,6 +118,11 @@ In the image above you can see the robot detecting the red and green pillars. Af
 | ![Left](/media/left.jpg)   | ![Right](/media/right.jpg)   |
 | ![Top](/media/top.jpg)     | ![Bottom](/media/bottom.jpg) |
 
+![Team](/media/Teamfoto%20offiziell.JPG)
+![Team](/media/Teamfoto%20lustig.JPG)
+
+**The national menu of Switzerland is fondue. While usually fondue is made from cheese, the team is enjoying a robot fondue 😎🤪**
+
 <!-- The performance videos must demonstrate the performance of the vehicle from start to finish for each challenge. The videos could include an overlay of commentary, titles or animations. The video could also include aspects of section 1, 2 or 3 -->
 
 ## Videos
