@@ -72,7 +72,8 @@ The Pi HQ camera connects directly to the Raspberry Pi, drawing power from the P
 
 <!-- Obstacle management discussion should include the strategy for the vehicle to negotiate the obstacle course for all the challenges. This could include flow diagrams, pseudo code and source code with detailed comments. -->
 
-All files for the 3D printed parts can be found in the [3D-Printed-Parts](/cad/3d) folder. The wiring diagram can be found in the [Wiring Diagram](/media/wiringdiagram.jpg) file. The instructions for the LEGO chassis can be found in the [stud.io file](/cad/future_eng_flawfactory_v2.io).
+All files for the 3D printed parts can be found in the [3D-Printed-Parts](/cad/3d) folder. All parts can be printed without supports at 0.2mm layer height. we recommend using PET-G or nGen for the parts (PLA can also be used).
+The wiring diagram can be found in the [Wiring Diagram](/media/wiringdiagram.jpg) file. The instructions for the LEGO chassis can be found in the [stud.io file](/cad/future_eng_flawfactory_v2.io).
 
 ## Obstacle Management
 
