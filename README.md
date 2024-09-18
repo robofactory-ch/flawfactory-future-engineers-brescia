@@ -48,7 +48,7 @@ The Pi HQ camera connects directly to the Raspberry Pi, drawing power from the P
 
 ### Wiring Diagram
 
-![Wiring Diagram]()
+![Wiring Diagram](/media/wiringdiagram.jpg)
 
 ### Bill of Materials
 
@@ -71,6 +71,8 @@ The Pi HQ camera connects directly to the Raspberry Pi, drawing power from the P
 | **TOTAL**        |                                                                 | **CHF 262.83**                              |
 
 <!-- Obstacle management discussion should include the strategy for the vehicle to negotiate the obstacle course for all the challenges. This could include flow diagrams, pseudo code and source code with detailed comments. -->
+
+All files for the 3D printed parts can be found in the [3D-Printed-Parts](/cad/3d) folder. The wiring diagram can be found in the [Wiring Diagram](/media/wiringdiagram.jpg) file. The instructions for the LEGO chassis can be found in the [stud.io file](/cad/future_eng_flawfactory_v2.io).
 
 ## Obstacle Management
 
