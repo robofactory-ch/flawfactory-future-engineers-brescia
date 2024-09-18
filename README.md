@@ -8,6 +8,12 @@
 - [Power and Sense Management](#Power-and-Sense-Management)
   - [Power Management](#Power-Management)
   - [Sense Management](#Sense-Management)
+  - [Wiring Diagram](#Wiring-Diagram)
+  - [Bill of Materials](#Bill-of-Materials)
+- [Obstacle Management](#Obstacle-Management)
+- [Photos](#Photos)
+- [Videos](#Videos)
+- [Enabling Reproducibility](#Enabling-Reproducibility)
 
 <!-- Mobility management discussion should cover how the vehicle movements are managed. What motors are selected, how they are selected and implemented.
 A brief discussion regarding the vehicle chassis design /selection can be provided as well as the mounting of all components to the vehicle chassis/structure. The discussion may include engineering principles such as speed, torque, power etc. usage. Building or assembly instructions can be provided together with 3D CAD files to 3D print parts. -->
@@ -60,3 +66,73 @@ The Pi HQ camera connects directly to the Raspberry Pi, drawing power from the P
 | ca 20 pieces     | Jumpercabel                                                     | CHF 4.00                                    |
 | See stud.io file | LEGO technic bricks                                             |                                             |
 | 4                | LEGO technic wheels                                             |                                             |
+| **TOTAL**        |                                                                 | **CHF 262.83**                              |
+
+<!-- Obstacle management discussion should include the strategy for the vehicle to negotiate the obstacle course for all the challenges. This could include flow diagrams, pseudo code and source code with detailed comments. -->
+
+## Obstacle Management
+
+### Opening Race
+
+The robot's behavior is modeled using a behavior tree. The [StateMachine](/raspy/statemachine.py) class manages the current state and handles transitions to new states. States can also be scheduled to start in the future, which is useful for delaying turns to avoid hitting inner walls. In the opening race, we use the states “STARTING,” “PD-CENTER,” “TURNING-L/R,” and “DONE.”
+
+We begin by determining the round direction. First, we crop the top half of the image and filter out all black pixels using OpenCV's `cv2.inRange` function. On this Boolean map of black pixels, we detect edges using `cv2.Canny`. By applying `np.argmax`, we find the heights of the walls in pixels at each x-coordinate in the image. The discrete differences between these heights are calculated using `np.diff`, raised to the fourth power, and summed up. This helps us identify the jump in wall height when the inner wall first appears.
+
+For driving, we employ a PD-Controller. The input is derived from the black portion of a region-of-interest extracted from the outer edges of the black-and-white Boolean image. This is compared to a pre-calibrated fixed portion. We follow only the outer wall to avoid collisions with the inner walls, especially if their gap distance is randomized to be small.
+
+Using a small region of interest in the center of the camera feed, we detect the blue and orange lines on the game mat. The color image is converted to HSV for this purpose. Upon encountering such a line, depending on its color, we initiate a turn and decrement the remaining corners counter, allowing us to accurately stop at the end of the round.
+
+### Obstacle Race
+
+In addition to extracting a black-and-white image, we convert the cropped color image to HSV. This conversion allows us to more easily and robustly extract red and green pixels. We then use `cv2.Canny` and `cv2.findContours` to search for contours in this image. The centroids of the contours are extracted and stored along with their width and height. The behavior tree is updated with two new states: "TRACKING-PILLAR" and "AVOIDING-PILLAR-R/G".
+
+When handling the HSV color space, special care is needed for colors near the red hue due to the wrap-around effect. The hue value for red is around 0° and 360°, meaning it wraps around the HSV color wheel. To accurately detect red, we create two separate masks: one for the lower range (e.g., 0° to 10°) and another for the upper range (e.g., 350° to 360°). These masks are then combined to form a single mask that accurately captures all red hues. This approach ensures that all shades of red are detected, avoiding issues caused by the hue value wrapping around the color wheel.
+
+<!-- Insert image with behavior tree here -->
+
+<!-- Pictures of the team and robot must be provided. The pictures of the robot must cover all sides of the robot, must be clear, in focus and show aspects of the mobility, power and sense, and obstacle management. Reference in the discussion sections 1, 2 and 3 can be made to these pictures. Team photo is necessary for judges to relate and identify the team during the local and international competitions. -->
+
+## Photos
+
+<!-- The performance videos must demonstrate the performance of the vehicle from start to finish for each challenge. The videos could include an overlay of commentary, titles or animations. The video could also include aspects of section 1, 2 or 3 -->
+
+## Videos
+
+## Enabling Reproducibility
+
+To enable the reproduction of our robot, we provide the following installation instructions:
+
+1. Install rapsberry pi os on your raspberry pi using the [official guide](https://www.raspberrypi.org/documentation/installation/installing-images/README.md)
+2. After booting up the raspberry pi, connect via ssh, and install the following packages:
+
+```bash
+sudo apt-get update
+sudo apt-get install python3-opencv python3-websockets python3-numpy python3-pyserial
+```
+
+3. Enable the camera using `sudo raspi-config` and reboot the raspberry pi for the changes to take effect. Install the corresponding python module:
+
+```bash
+sudo apt-get installpython3-picamera2
+```
+
+4. Clone the repository and run the main script:
+
+```bash
+git clone https://github.com/robofactory-ch/flawfactory-future-engineers-brescia.git
+```
+
+5. Running the robot in dev mode
+
+Check in the config file, if the correct usb port is set for the arduino. Check the correct port with `ls /dev/tty*` and look for the port that is connected to the arduino. Change the port in the config file to the correct port.
+
+Make sure pillars are enabled/disabled in the config file, and that no fixed round direction is set.
+
+Navigate to the `raspy` directory and run the main script:
+
+```bash
+cd flawfactory-future-engineers-brescia/raspy
+python3 roi.py
+```
+
+To launch the robot, open the web interface in your browser and start the robot by clicking the connect button. The robot will now start driving autonomously. To stop the robot, you can close the web interface, press the stop button on the robot or press `ctrl+c` in the ssh session.
