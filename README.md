@@ -37,3 +37,26 @@ Due to cost considerations, we selected an H-Bridge with a current rating below 
 For the regional finals, we experimented with various sensors, including ultrasonic sensors, gyroscopes, and cameras. Through our trials, we discovered that a camera alone suffices, provided it has a sufficiently wide field of view. Consequently, we selected a Pi HQ camera equipped with a screw-on lens offering a 120° field of view. This camera allows the robot to accurately perceive its surroundings.
 
 The Pi HQ camera connects directly to the Raspberry Pi, drawing power from the Pi itself, which is supplied via the 5V pins on the GPIO connector. Based on our experiences at the regional finals, we decided to eliminate all ultrasonic sensors and the gyroscope. Instead of relying on hardware sensors, we opted to enhance video processing to emulate distance sensing. To facilitate this and improve wall detection robustness, we mounted the camera precisely 100 mm above the ground, aligning its centerline with the top edge of the walls. This allows us to crop the image to a fixed height, ensuring that the walls are always detected at the same height in the image.
+
+### Wiring Diagram
+
+![Wiring Diagram]()
+
+### Bill of Materials
+
+| Amount           | Product                                                         | Price in Swiss Francs (CHF 1.00 ~ USD 1.18) |
+| ---------------- | --------------------------------------------------------------- | ------------------------------------------- |
+| 1                | Raspberry Pi M12 HQ Camera                                      | CHF 45.34                                   |
+| 1                | EDATEC 12MP 3.2mm M12 Raspberry                                 | CHF 28.84                                   |
+| 1                | Raspberry Pi 4 Model B 8GB                                      | CHF 79.00                                   |
+| 1                | Arduino Nano: Multifunktionales Board ATmega328 16Mhz, Mini-USB | CHF 19.95                                   |
+| 1                | Tattu LiPo-Akku 14.8V 850mAh 95C 4S1P RL                        | CHF 14.00                                   |
+| 1                | L298N Schrittmotorendstufe / H-Brücke / DC Motor Treiber        | CHF 8.90                                    |
+| 1                | PDI-5515MG Digital Standard Servo 15.32Kg\*cm                   | CHF 18.90                                   |
+| 1                | 12V 251RPM 18Kg\*cm DC Getriebemotor mit Encoder                | CHF 35.90                                   |
+| ca. 20 pieces    | M2.5 Screws and nuts                                            | CHF 2.00                                    |
+| ca. 10 pieces    | M2 Screws and nuts                                              | CHF 1.00                                    |
+| ca. 300g         | 3D printing filament                                            | CHF 5.00                                    |
+| ca 20 pieces     | Jumpercabel                                                     | CHF 4.00                                    |
+| See stud.io file | LEGO technic bricks                                             |                                             |
+| 4                | LEGO technic wheels                                             |                                             |
