@@ -119,7 +119,7 @@ In the image above you can see the robot detecting the red and green pillars. Af
 | ![Top](/media/top.jpg)     | ![Bottom](/media/bottom.jpg) |
 
 ![Team](/media/Teamfoto%20offiziell.JPG)
-![Team](/media/Teamfoto%20lustig.JPG)
+![Team](/media/Teamfoto%20lustig.jpg)
 
 **The national menu of Switzerland is fondue. While usually fondue is made from cheese, the team is enjoying a robot fondue 😎🤪**
 
