@@ -136,11 +136,11 @@ def cycle():
   if sm.current_state == "DONE":
     correction = 0.0
     print("---- DONE ----")
-    message = "d" + str(int(0)) + "\n"
-    ser.write(message.encode())
-    print(message)
-    message = "s0\n"
-    ser.write(message.encode())
+    if ser:
+      message = "d" + str(int(0)) + "\n"
+      ser.write(message.encode())
+      message = "s0\n"
+      ser.write(message.encode())
     # exit()
     sleep(5)
     exit()
@@ -235,8 +235,9 @@ async def img_stream(websocket: WebSocketServerProtocol, path):
       }
       await websocket.send(json.dumps(data))
   except:
-    ser.write("s0\n".encode())
-    ser.write("d0\n".encode())
+    if ser:
+      ser.write("s0\n".encode())
+      ser.write("d0\n".encode())
     exit()
     
 
