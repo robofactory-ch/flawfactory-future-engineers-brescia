@@ -89,10 +89,22 @@ class StateMachine:
       # Pillars are already sorted by distance, as their projected size is proportional to their distance
       next_pillar = pillars[0]
       if self.current_state == "PD-CENTER":
-        if next_pillar.color == "RED":
-          self.transitionState("PD-RIGHT")
-        else:
-          self.transitionState("PD-LEFT")
+        if next_pillar.height > 35:
+          self.transitionState("TRACKING-PILLAR")
+          return True
+      elif self.current_state == "TRACKING-PILLAR" or self.current_state == "PD-CENTER":
+        if next_pillar.height > 90:
+          self.transitionState(f"AVOIDING-{"R" if next_pillar.color == "RED" else "G"}")
+          return True
+
+    if self.current_state == "TRACKING-PILLAR":
+      # HOW?? Pillars has been lost, tracking is no more
+      if len(pillars) == 0:
+        self.transitionState("PD-CENTER")
+
+    if self.current_state == "AVOIDING-R" or self.current_state == "AVOIDING-G":
+      if time_diff > 0.6: # Avoid for 0.6 seconds, huck and pray
+        self.transitionState("PD-CENTER")
         return True
       
     return False

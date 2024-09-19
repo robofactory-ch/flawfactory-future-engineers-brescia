@@ -15,10 +15,6 @@ from statemachine import StateMachine
 from picamera2 import Picamera2
 from rounddir import find_round_dir
 
-#TODO: round direction detection
-#TODO: Add serial communication
-#TODO: Pillars handling
-#TODO: PD tuning
 #?: Webviewer controls for tuning colors, pd, and selecting stream
 
 configloader = ConfigLoader("config.json")
@@ -113,10 +109,9 @@ def cycle():
 
   PD_STATES = ["PD-CENTER", "PD-RIGHT", "PD-LEFT"]
 
-  if sm.current_state == "PD-LEFT":
-    REF_PORTION = 0.15
-  if sm.current_state == "PD-RIGHT":
-    REF_PORTION = 0.85
+  if sm.current_state == "TRACKING-PILLAR" and len(pillars) > 0:
+    # attempt to keep the pillar in the center of the image
+    error = float(320 - pillars[0].screen_x) / 320.0
 
   # follow the left wall, if we're going counter-clockwise
   if sm.current_state in PD_STATES and sm.round_dir == -1:
@@ -133,6 +128,10 @@ def cycle():
     correction = -turn_correction
   if sm.current_state == "TURNING-R":
     correction = turn_correction
+  if sm.current_state == "AVOIDING-R":
+    error = -turn_correction
+  if sm.current_state == "AVOIDING-G":
+    error = turn_correction
 
   if sm.current_state == "DONE":
     correction = 0.0
