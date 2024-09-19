@@ -94,7 +94,7 @@ class StateMachine:
           return True
       elif self.current_state == "TRACKING-PILLAR" or self.current_state == "PD-CENTER":
         if next_pillar.height > 90:
-          self.transitionState(f"AVOIDING-{"R" if next_pillar.color == "RED" else "G"}")
+          self.transitionState(f"AVOIDING-{'R' if next_pillar.color == 'RED' else 'G'}")
           return True
 
     if self.current_state == "TRACKING-PILLAR":
