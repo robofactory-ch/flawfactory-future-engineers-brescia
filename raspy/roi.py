@@ -236,7 +236,7 @@ async def img_stream(websocket: WebSocketServerProtocol, path):
         "b": encode_image(products[current_streams[1]])
       }
       await websocket.send(json.dumps(data))
-  except:
+  except (KeyboardInterrupt):
     if ser:
       ser.write("s0\n".encode())
       ser.write("d0\n".encode())
