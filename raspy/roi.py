@@ -189,7 +189,7 @@ def cycle():
 
 def main():
   global sm, last_error, kp, kd
-  sm = StateMachine()
+  sm = StateMachine(isPillarRound=True)
   last_error = 0.0
 
   kp = configloader.get_property("PD")['kp']
@@ -211,7 +211,7 @@ def encode_image(image):
 
 async def img_stream(websocket: WebSocketServerProtocol, path):
   global sm, last_error, kp, kd
-  sm = StateMachine()
+  sm = StateMachine(isPillarRound=True)
   last_error = 0.0
 
   kp = configloader.get_property("PD")['kp']
