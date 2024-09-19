@@ -196,8 +196,14 @@ def main():
   kp = configloader.get_property("PD")['kp']
   kd = configloader.get_property("PD")['kd']
 
-  while True:
-    cycle()
+  try:
+    while True:
+      cycle()
+  except (KeyboardInterrupt):
+    if ser:
+      ser.write("s0\n".encode())
+      ser.write("d0\n".encode())
+    exit()
 
 def encode_image(image):
     retval, buffer = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 70])
