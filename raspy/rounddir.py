@@ -13,10 +13,10 @@ def find_round_dir(black_img: np.ndarray):
 
   wall_heights = np.argmax(edges_img, axis=0)
 
-  print("wh", wall_heights)
+  # print("wh", wall_heights)
 
   differences = np.diff(wall_heights)
-  print("diff", differences)
+  # print("diff", differences)
 
 
   # count the number of positive and negative jumps in the differences
