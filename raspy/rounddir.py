@@ -13,9 +13,9 @@ def find_round_dir(black_img: np.ndarray):
   differences = np.diff(wall_heights)
 
   if np.sum(np.power(differences, 4.0)) > 0:
-    print("Counter clockwise")
+    print("[DIR] CCW")
     return -1
   else:
-    print("Clockwise")
+    print("[DIR] CW")
     return 1
 

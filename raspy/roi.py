@@ -13,6 +13,7 @@ from helpers import Pillar, extract_ROI
 from pipeline import Pipeline
 from statemachine import StateMachine
 from picamera2 import Picamera2
+from rounddir import find_round_dir
 
 #TODO: round direction detection
 #TODO: Add serial communication
@@ -145,7 +146,8 @@ def cycle():
     sleep(5)
     exit()
 
-  #TODO: Implement Pillars
+  if sm.search_for_dir:
+    sm.round_dir += find_round_dir(black_img=rgbl["black"])
 
   
   # else:

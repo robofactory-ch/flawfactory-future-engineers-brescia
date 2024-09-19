@@ -2,13 +2,14 @@ from time import time
 
 from helpers import Pillar
 
-
 class StateMachine:
 
   current_state = "STARTING"
   last_state_time = 0.0
   round_dir = 0
   turns_left = 12
+
+  search_for_dir = True
 
   _scheduled_state = None
 
@@ -36,12 +37,12 @@ class StateMachine:
       return False
     
     if self.current_state == "STARTING":
-      if self.round_dir != 0:
+      if abs(self.round_dir) > 10:
+        self.search_for_dir = False
         self.transitionState("PD-CENTER")
         return True
       else:
-        #TODO: Implement round direction detection
-        self.round_dir = -1
+        self.search_for_dir = True
         return False
 
 
