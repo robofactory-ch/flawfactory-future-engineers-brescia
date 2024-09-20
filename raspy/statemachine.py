@@ -38,6 +38,7 @@ class StateMachine:
     
     if self.current_state == "STARTING":
       if abs(self.round_dir) > 10:
+        self.round_dir = 1 if self.round_dir > 0 else -1
         self.search_for_dir = False
         self.transitionState("PD-CENTER")
         return True

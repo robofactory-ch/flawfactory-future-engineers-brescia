@@ -167,6 +167,7 @@ def cycle():
   # viz stuff
   cv2.putText(viz, f"State: {sm.current_state} {round(time() - sm.last_state_time, 2)}s", (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
   cv2.putText(viz, f"Errs: {round(portion_black_l-0.25, 2)} {round(portion_black_l-portion_black_r, 2)} {round(0.25-portion_black_r, 2)}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
+  cv2.putText(viz, f"Correction: {round(correction, 2)}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
   cv2.putText(viz, f"{12 - sm.turns_left} / 12", (580, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
   for p in pillars:
     cv2.line(viz, (p.screen_x, 0), (p.screen_x, 480), (0, 0, 255) if p.color == "RED" else (0, 255, 0), 2)
