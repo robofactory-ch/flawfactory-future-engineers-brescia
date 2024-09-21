@@ -102,6 +102,7 @@ class StateMachine:
     if self.current_state == "TRACKING-PILLAR":
       # HOW?? Pillars has been lost, tracking is no more
       if len(pillars) == 0:
+        print("Lost the pillar, tracking aborted")
         self.transitionState("PD-CENTER")
         return True
 
