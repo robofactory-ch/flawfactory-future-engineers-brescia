@@ -250,7 +250,11 @@ async def img_stream(websocket: WebSocketServerProtocol, path):
     
 
 if __name__ == "__main__":
-  start_server = serve(img_stream, "0.0.0.0", 8765)
-  asyncio.get_event_loop().run_until_complete(start_server)
-  asyncio.get_event_loop().run_forever()
+  headless = False
+  if headless:
+    main()
+  else:
+    start_server = serve(img_stream, "0.0.0.0", 8765)
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
   # main()
