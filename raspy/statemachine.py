@@ -71,7 +71,7 @@ class StateMachine:
     # we should stop turning and straighten out with PD
     MIN_PORTION = 0.25
     if portion_blue > MIN_PORTION:
-      if self.current_state != "TURNING-R":
+      if self.current_state != "TURNING-R" and self.round_dir < 0:
         self.turns_left -= 1
         self.scheduleStateTransition("TURNING-L", 0.6)
       else:
@@ -79,7 +79,7 @@ class StateMachine:
       return True
     
     if portion_orange > MIN_PORTION:
-      if self.current_state != "TURNING-L":
+      if self.current_state != "TURNING-L" and self.round_dir > 0:
         self.turns_left -= 1
         self.scheduleStateTransition("TURNING-R", 0.6)
       else:
@@ -89,12 +89,13 @@ class StateMachine:
     if len(pillars) > 0 and self.isPillarRound:
       # Pillars are already sorted by distance, as their projected size is proportional to their distance
       next_pillar = pillars[0]
+      print("Next pillar:", next_pillar.color, "height:", next_pillar.height)
       if self.current_state == "PD-CENTER":
         if next_pillar.height > 35:
           self.transitionState("TRACKING-PILLAR")
           return True
       elif self.current_state == "TRACKING-PILLAR" or self.current_state == "PD-CENTER":
-        if next_pillar.height > 90:
+        if next_pillar.height > 80:
           self.transitionState(f"AVOIDING-{'R' if next_pillar.color == 'RED' else 'G'}")
           return True
 
@@ -102,6 +103,7 @@ class StateMachine:
       # HOW?? Pillars has been lost, tracking is no more
       if len(pillars) == 0:
         self.transitionState("PD-CENTER")
+        return True
 
     if self.current_state == "AVOIDING-R" or self.current_state == "AVOIDING-G":
       if time_diff > 0.6: # Avoid for 0.6 seconds, huck and pray
