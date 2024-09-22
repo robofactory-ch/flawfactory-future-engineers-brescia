@@ -61,7 +61,7 @@ class StateMachine:
       next_pillar = pillars[0]
       # print("Next pillar:", next_pillar.color, "height:", next_pillar.height)
       if self.current_state == "PD-CENTER":
-        if next_pillar.height > 35:
+        if next_pillar.height > 35 and (not next_pillar.ignore):
           self.transitionState("TRACKING-PILLAR")
           return True
       elif self.current_state == "TRACKING-PILLAR" or self.current_state == "PD-CENTER":

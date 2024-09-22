@@ -2,6 +2,7 @@ import numpy as np
 
 
 class Pillar:
+  ignore = False
   def __init__(self, screen_x: int, width: int, height: int, color: str):
     self.screen_x = screen_x
     self.width = width
