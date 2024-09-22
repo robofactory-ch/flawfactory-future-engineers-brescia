@@ -51,10 +51,35 @@ class StateMachine:
       self.scheduleStateTransition("DONE", 2.6)
       return True
     
-
     # Hold the current state for a minimum of x seconds
-    if time_diff < 0.8:
+    HOLD_STATES = [["TURNING-L", "TURNING-R", "PD-CENTER"]]
+    if self.current_state in HOLD_STATES and time_diff < 0.4:
       return False
+    
+    if len(pillars) > 0 and self.isPillarRound:
+      # Pillars are already sorted by distance, as their projected size is proportional to their distance
+      next_pillar = pillars[0]
+      # print("Next pillar:", next_pillar.color, "height:", next_pillar.height)
+      if self.current_state == "PD-CENTER":
+        if next_pillar.height > 35:
+          self.transitionState("TRACKING-PILLAR")
+          return True
+      elif self.current_state == "TRACKING-PILLAR" or self.current_state == "PD-CENTER":
+        if next_pillar.height > 80:
+          self.transitionState(f"AVOIDING-{'R' if next_pillar.color == 'RED' else 'G'}")
+          return True
+
+    if self.current_state == "TRACKING-PILLAR":
+      # HOW?? Pillars has been lost, tracking is no more
+      if len(pillars) == 0:
+        print("Lost the pillar, tracking aborted")
+        self.transitionState("PD-CENTER")
+        return True
+
+    if self.current_state == "AVOIDING-R" or self.current_state == "AVOIDING-G":
+      if time_diff > 0.6: # Avoid for 0.6 seconds, huck and pray
+        self.transitionState("PD-CENTER")
+        return True
     
 
     # We always finnish a turn after this timeout, no matter what. 
@@ -86,29 +111,5 @@ class StateMachine:
         self.transitionState("PD-CENTER")
       return True
     
-    if len(pillars) > 0 and self.isPillarRound:
-      # Pillars are already sorted by distance, as their projected size is proportional to their distance
-      next_pillar = pillars[0]
-      print("Next pillar:", next_pillar.color, "height:", next_pillar.height)
-      if self.current_state == "PD-CENTER":
-        if next_pillar.height > 35:
-          self.transitionState("TRACKING-PILLAR")
-          return True
-      elif self.current_state == "TRACKING-PILLAR" or self.current_state == "PD-CENTER":
-        if next_pillar.height > 80:
-          self.transitionState(f"AVOIDING-{'R' if next_pillar.color == 'RED' else 'G'}")
-          return True
-
-    if self.current_state == "TRACKING-PILLAR":
-      # HOW?? Pillars has been lost, tracking is no more
-      if len(pillars) == 0:
-        print("Lost the pillar, tracking aborted")
-        self.transitionState("PD-CENTER")
-        return True
-
-    if self.current_state == "AVOIDING-R" or self.current_state == "AVOIDING-G":
-      if time_diff > 0.6: # Avoid for 0.6 seconds, huck and pray
-        self.transitionState("PD-CENTER")
-        return True
       
     return False

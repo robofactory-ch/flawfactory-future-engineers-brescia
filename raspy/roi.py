@@ -87,7 +87,7 @@ def cycle():
   pillars_g = pipeline.get_pillars(rgbl["green"], "GREEN")
   pillars = pillars_r + pillars_g
 
-  pillars.sort(key=lambda x: x.width*x.height)
+  pillars.sort(key=lambda x: x.width*x.height, reverse=True)
 
   # A state machine is used to model the car's behavior
   # This checks if the car should transition to a new state, and if so, transitions
@@ -111,7 +111,7 @@ def cycle():
 
   if sm.current_state == "TRACKING-PILLAR" and len(pillars) > 0:
     # attempt to keep the pillar in the center of the image
-    error = float(320 - pillars[0].screen_x) / 320.0
+    error = float(pillars[0].screen_x - 320) / 320.0
 
   # follow the left wall, if we're going counter-clockwise
   if sm.current_state in PD_STATES and sm.round_dir == -1:
