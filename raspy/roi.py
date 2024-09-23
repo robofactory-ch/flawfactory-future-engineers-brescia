@@ -97,12 +97,12 @@ def cycle():
     # for this extract a region-of-interest around the pillar
     roi_pillar_check = extract_ROI(hsv_image, [next_pillar.screen_x - int(next_pillar.width*0.35), 0], [next_pillar.screen_x + int(next_pillar.width*0.35), hsv_image.shape[1]])
     # filter out the orange and blue colors
-    if not roi_pillar_check.empty():
+    if not roi_pillar_check.shape[0] == 0 and not roi_pillar_check.shape[1] == 0:
       orange_blue_pillar = pipeline.filter_OB(roi_pillar_check)
       portion_orange_pillar = cv2.countNonZero(orange_blue_pillar["orange"]) / (orange_blue_pillar["orange"].shape[0] * orange_blue_pillar["orange"].shape[1])
       portion_blue_pillar = cv2.countNonZero(orange_blue_pillar["blue"]) / (orange_blue_pillar["blue"].shape[0] * orange_blue_pillar["blue"].shape[1])
       # check if the pillar is before or after a turn marker
-      print(portion_orange_pillar, portion_blue_pillar)
+      # print(portion_orange_pillar, portion_blue_pillar)
       if portion_orange_pillar > 0.0005 or portion_blue_pillar > 0.0005:
         print("Pillar is after a turn marker")
         pillars[0].ignore = True
@@ -185,6 +185,8 @@ def cycle():
     ser.write(message.encode())
     message = "s " + str(int(steering_angle)) + "\n"
     ser.write(message.encode())
+  
+  # print(error - last_error)
 
   # viz stuff
   cv2.putText(viz, f"State: {sm.current_state} {round(time() - sm.last_state_time, 2)}s", (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
