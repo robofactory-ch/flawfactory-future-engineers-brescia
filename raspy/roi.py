@@ -126,7 +126,7 @@ def cycle():
 
   if sm.current_state == "TRACKING-PILLAR" and len(pillars) > 0:
     # attempt to keep the pillar in the center of the image
-    error = float(pillars[0].screen_x - 320) / 320.0
+    error = float(pillars[0].screen_x - 320) / 640.0
 
   # follow the left wall, if we're going counter-clockwise
   if sm.current_state in PD_STATES and sm.round_dir == -1:
@@ -143,10 +143,14 @@ def cycle():
     correction = -turn_correction
   if sm.current_state == "TURNING-R":
     correction = turn_correction
-  if sm.current_state == "AVOIDING-R":
+  if (sm.current_state == "AVOIDING-R" and sm.time_diff < 0.9):
     error = -turn_correction
-  if sm.current_state == "AVOIDING-G":
+  if (sm.current_state == "AVOIDING-G" and sm.time_diff > 0.9):
+    error = -turn_correction*0.6
+  if (sm.current_state == "AVOIDING-G" and sm.time_diff < 0.9):
     error = turn_correction
+  if (sm.current_state == "AVOIDING-R" and sm.time_diff > 0.9):
+    error = turn_correction*0.6
 
   if sm.current_state == "DONE":
     correction = 0.0

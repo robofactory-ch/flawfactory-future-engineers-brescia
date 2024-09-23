@@ -9,6 +9,8 @@ class StateMachine:
   round_dir = 0
   turns_left = 12
 
+  time_diff = 0.0
+
   search_for_dir = True
 
   _scheduled_state = None
@@ -26,6 +28,7 @@ class StateMachine:
 
   def shouldTransitionState(self, portion_orange: float, portion_blue: float, pillars: list[Pillar]):
     time_diff = time() - self.last_state_time
+    self.time_diff = time_diff
 
     if self._scheduled_state is not None:
       new_state, scheduled_time = self._scheduled_state
@@ -61,11 +64,11 @@ class StateMachine:
       next_pillar = pillars[0]
       # print("Next pillar:", next_pillar.color, "height:", next_pillar.height)
       if self.current_state == "PD-CENTER":
-        if next_pillar.height > 35 and (not next_pillar.ignore):
+        if next_pillar.height > 30 and (not next_pillar.ignore):
           self.transitionState("TRACKING-PILLAR")
           return True
       elif self.current_state == "TRACKING-PILLAR" or self.current_state == "PD-CENTER":
-        if next_pillar.height > 80:
+        if next_pillar.height > 70:
           self.transitionState(f"AVOIDING-{'R' if next_pillar.color == 'RED' else 'G'}")
           return True
 
@@ -77,7 +80,7 @@ class StateMachine:
         return True
 
     if self.current_state == "AVOIDING-R" or self.current_state == "AVOIDING-G":
-      if time_diff > 0.6: # Avoid for 0.6 seconds, huck and pray
+      if time_diff > 1.4: # Avoid for 0.6 seconds, huck and pray
         self.transitionState("PD-CENTER")
         return True
     
