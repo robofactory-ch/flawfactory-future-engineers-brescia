@@ -4,7 +4,8 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /home/pi/program/roi.py
+WorkingDirectory=/home/pi/program
+ExecStart=/usr/bin/python3 /home/pi/program/roi.py --headless --shutdown
 
 [Install]
 WantedBy=multi-user.target

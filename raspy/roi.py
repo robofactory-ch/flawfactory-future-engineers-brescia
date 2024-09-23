@@ -2,6 +2,7 @@ import asyncio
 import base64
 import json
 import math
+import os
 from time import sleep, time
 import cv2
 import numpy as np
@@ -14,6 +15,7 @@ from pipeline import Pipeline
 from statemachine import StateMachine
 from picamera2 import Picamera2
 from rounddir import find_round_dir
+import argparse
 
 #?: Webviewer controls for tuning colors, pd, and selecting stream
 
@@ -209,7 +211,7 @@ def cycle():
 
 def main():
   global sm, last_error, kp, kd
-  sm = StateMachine(isPillarRound=True)
+  sm = StateMachine(isPillarRound=pillars)
   last_error = 0.0
 
   kp = configloader.get_property("PD")['kp']
@@ -231,7 +233,7 @@ def encode_image(image):
 
 async def img_stream(websocket: WebSocketServerProtocol, path):
   global sm, last_error, kp, kd
-  sm = StateMachine(isPillarRound=True)
+  sm = StateMachine(isPillarRound=pillars)
   last_error = 0.0
 
   kp = configloader.get_property("PD")['kp']
@@ -269,11 +271,19 @@ async def img_stream(websocket: WebSocketServerProtocol, path):
     
 
 if __name__ == "__main__":
-  headless = False
+  parser = argparse.ArgumentParser(description="Check if --headless flag was given.")
+  parser.add_argument('--headless', action='store_true', help='Run in headless mode')
+  parser.add_argument('--pillars', action='store_true', help='Run in pillar mode')
+  parser.add_argument('--shutdown', action='store_true', help='Shutdown after run')
+  args = parser.parse_args()
+  headless = args.headless
+  pillars = args.pillars
+  shutdown = args.shutdown
   if headless:
     main()
   else:
     start_server = serve(img_stream, "0.0.0.0", 8765)
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
-  # main()
+    if shutdown:
+      os.system("sudo shutdown now")
