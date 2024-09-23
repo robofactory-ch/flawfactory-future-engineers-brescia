@@ -97,14 +97,15 @@ def cycle():
     # for this extract a region-of-interest around the pillar
     roi_pillar_check = extract_ROI(hsv_image, [next_pillar.screen_x - int(next_pillar.width*0.35), 0], [next_pillar.screen_x + int(next_pillar.width*0.35), hsv_image.shape[1]])
     # filter out the orange and blue colors
-    orange_blue_pillar = pipeline.filter_OB(roi_pillar_check)
-    portion_orange_pillar = cv2.countNonZero(orange_blue_pillar["orange"]) / (orange_blue_pillar["orange"].shape[0] * orange_blue_pillar["orange"].shape[1])
-    portion_blue_pillar = cv2.countNonZero(orange_blue_pillar["blue"]) / (orange_blue_pillar["blue"].shape[0] * orange_blue_pillar["blue"].shape[1])
-    # check if the pillar is before or after a turn marker
-    print(portion_orange_pillar, portion_blue_pillar)
-    if portion_orange_pillar > 0.0005 or portion_blue_pillar > 0.0005:
-      print("Pillar is after a turn marker")
-      pillars[0].ignore = True
+    if not roi_pillar_check.empty():
+      orange_blue_pillar = pipeline.filter_OB(roi_pillar_check)
+      portion_orange_pillar = cv2.countNonZero(orange_blue_pillar["orange"]) / (orange_blue_pillar["orange"].shape[0] * orange_blue_pillar["orange"].shape[1])
+      portion_blue_pillar = cv2.countNonZero(orange_blue_pillar["blue"]) / (orange_blue_pillar["blue"].shape[0] * orange_blue_pillar["blue"].shape[1])
+      # check if the pillar is before or after a turn marker
+      print(portion_orange_pillar, portion_blue_pillar)
+      if portion_orange_pillar > 0.0005 or portion_blue_pillar > 0.0005:
+        print("Pillar is after a turn marker")
+        pillars[0].ignore = True
 
   # A state machine is used to model the car's behavior
   # This checks if the car should transition to a new state, and if so, transitions
