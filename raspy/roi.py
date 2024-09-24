@@ -167,7 +167,7 @@ def cycle():
     sleep(5)
     exit()
 
-  if sm.search_for_dir:
+  if sm.search_for_dir and sm.current_state == "STARTING":
     sm.round_dir += find_round_dir(black_img=rgbl["black"])
 
   
@@ -185,6 +185,16 @@ def cycle():
     ser.write(message.encode())
     message = "s " + str(int(steering_angle)) + "\n"
     ser.write(message.encode())
+
+    msg = ser.readline().decode('utf-8')
+    msg = msg.strip()
+    if msg == "enable 1" and sm.current_state == "WAITING":
+      sm.transitionState("STARTING")
+    if msg == "enable 0":
+      sm.current_state = "WAITING"
+      ser.write("s0\n".encode())
+      ser.write("d0\n".encode())
+      exit()
   
   # print(error - last_error)
 

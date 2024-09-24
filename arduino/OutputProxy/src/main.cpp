@@ -9,6 +9,10 @@ const int enaPin = 11;
 const int in1Pin = 5;
 const int in2Pin = 6;
 
+const int enTogglePin = 7;
+
+bool en_state = false;
+
 int current_speed = 0;
 int set_speed = 0;
 unsigned long acc_time = 20;
@@ -103,9 +107,9 @@ void parseMessage(char *msg)
     end++;
   }
 
-  Serial.println(cmd);
+  // Serial.println(cmd);
   value = atoi(beg);
-  Serial.println(value);
+  // Serial.println(value);
 
   if (cmd[0] == 'd')
   {
@@ -136,17 +140,35 @@ void processMessage()
   }
 
   message[index] = '\0'; // Null-terminate the message string
-  Serial.println(message);
+  // Serial.println(message);
 
   // Parse the extracted message
   parseMessage(message);
 }
 
+void checkEnable()
+{
+  bool last_state = en_state;
+  digitalRead(enTogglePin) == LOW ? en_state = true : en_state = false;
+  if (en_state != last_state)
+  {
+    if (en_state)
+    {
+      Serial.println("enable 1");
+    }
+    else
+    {
+      Serial.println("enable 0");
+    }
+  }
+}
+
 void setup()
 {
-  pinMode(enaPin, OUTPUT);
   pinMode(in1Pin, OUTPUT);
   pinMode(in2Pin, OUTPUT);
+
+  pinMode(enTogglePin, INPUT_PULLUP);
 
   servo.attach(servoPin);
 
@@ -163,7 +185,7 @@ void loop()
   while (Serial.available() > 0)
   {
     char incomingByte = Serial.read();
-    Serial.print(incomingByte);
+    // Serial.print(incomingByte);
     ringBuffer[head] = incomingByte;
     head = ++head % BUFFER_SIZE; // Move the head and wrap it around
 
