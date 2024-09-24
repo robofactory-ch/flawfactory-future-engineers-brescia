@@ -160,6 +160,7 @@ void checkEnable()
     {
       Serial.println("enable 0");
     }
+    delay(250);
   }
 }
 
