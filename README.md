@@ -8,6 +8,11 @@
 
 **This is the github repository for team FlawFactory for WRO 2024 Brescia. You'll find our documentation in this readme**
 
+We, Damian Hardegger and Jesse Born, make up the WRO team FlawFactory. We have been taking
+part in WRO competitions for several years now. Previously, we competed in di erent teams in the
+RoboMission category and were also successful there. But this year we took on a new challenge
+and ventured into the Future Engineers task together as a joint team.
+
 ## Contents
 
 - [Mobility and Hardware Design](#Mobility-Management)
