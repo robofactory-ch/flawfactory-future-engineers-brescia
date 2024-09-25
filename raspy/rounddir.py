@@ -28,4 +28,7 @@ def find_round_dir(black_img: np.ndarray):
   clockwise = np.sum(differences < -MIN_JUMP)
   # print("cc", counter_clockwise)
   # print("cw", clockwise)
+  print("rounddir:", clockwise > counter_clockwise)
+  print("cw ", clockwise)
+  print("ccw", counter_clockwise)
   return -1 if clockwise > counter_clockwise else 1

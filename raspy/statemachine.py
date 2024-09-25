@@ -101,7 +101,7 @@ class StateMachine:
     if portion_blue > MIN_PORTION:
       if self.current_state != "TURNING-R" and self.round_dir < 0:
         self.turns_left -= 1
-        self.scheduleStateTransition("TURNING-L", 0.6)
+        self.scheduleStateTransition("TURNING-L", 0.8)
       else:
         self.transitionState("PD-CENTER")
       return True
@@ -109,7 +109,7 @@ class StateMachine:
     if portion_orange > MIN_PORTION:
       if self.current_state != "TURNING-L" and self.round_dir > 0:
         self.turns_left -= 1
-        self.scheduleStateTransition("TURNING-R", 0.6)
+        self.scheduleStateTransition("TURNING-R", 0.8)
       else:
         self.transitionState("PD-CENTER")
       return True

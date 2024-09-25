@@ -118,7 +118,7 @@ def cycle():
 
   # This is the reference value for the single side PD control, 
   # eg. how much black should be on the left side when the car follows the left outer wall
-  REF_PORTION = 0.39
+  REF_PORTION = 0.45
 
   # error value
   error = 0.0
