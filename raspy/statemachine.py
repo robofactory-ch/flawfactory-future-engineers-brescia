@@ -4,7 +4,7 @@ from helpers import Pillar
 
 class StateMachine:
 
-  current_state = "WAITING"
+  current_state = "STARTING"
   last_state_time = 0.0
   round_dir = 0
   turns_left = 12

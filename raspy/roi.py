@@ -185,16 +185,6 @@ def cycle():
     ser.write(message.encode())
     message = "s " + str(int(steering_angle)) + "\n"
     ser.write(message.encode())
-
-    msg = ser.readline().decode('utf-8')
-    msg = msg.strip()
-    if msg == "enable 1" and sm.current_state == "WAITING":
-      sm.transitionState("STARTING")
-    if msg == "enable 0":
-      sm.current_state = "WAITING"
-      ser.write("s0\n".encode())
-      ser.write("d0\n".encode())
-      exit()
   
   # print(error - last_error)
 
@@ -292,6 +282,14 @@ if __name__ == "__main__":
   headless = args.headless
   pillars = args.pillars
   shutdown = args.shutdown
+
+  if ser:
+    while True:
+      msg = ser.readline().decode('utf-8')
+      msg = msg.strip()
+      if msg == "enable 1" :
+        break
+
   if headless:
     main()
   else:

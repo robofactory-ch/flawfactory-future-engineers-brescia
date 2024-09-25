@@ -149,7 +149,8 @@ void processMessage()
 void checkEnable()
 {
   bool last_state = en_state;
-  digitalRead(enTogglePin) == LOW ? en_state = true : en_state = false;
+  en_state = digitalRead(enTogglePin) == HIGH;
+
   if (en_state != last_state)
   {
     if (en_state)
@@ -169,7 +170,7 @@ void setup()
   pinMode(in1Pin, OUTPUT);
   pinMode(in2Pin, OUTPUT);
 
-  pinMode(enTogglePin, INPUT_PULLUP);
+  pinMode(enTogglePin, INPUT);
 
   servo.attach(servoPin);
 
@@ -204,4 +205,5 @@ void loop()
   }
   steer(set_degree);
   drive(set_speed);
+  checkEnable();
 }
