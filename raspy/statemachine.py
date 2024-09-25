@@ -14,6 +14,7 @@ class StateMachine:
   search_for_dir = True
 
   _scheduled_state = None
+  _time_last_avoid = -5
 
   def __init__(self, isPillarRound: bool = False) -> None:
     self.last_state_time = time()
@@ -68,7 +69,8 @@ class StateMachine:
           self.transitionState("TRACKING-PILLAR")
           return True
       elif self.current_state == "TRACKING-PILLAR" or self.current_state == "PD-CENTER":
-        if next_pillar.height > 70:
+        if next_pillar.height > 70 and time() - self._time_last_avoid > 1.0:
+          self._time_last_avoid = time()
           self.transitionState(f"AVOIDING-{'R' if next_pillar.color == 'RED' else 'G'}")
           return True
 
@@ -80,7 +82,7 @@ class StateMachine:
         return True
 
     if self.current_state == "AVOIDING-R" or self.current_state == "AVOIDING-G":
-      if time_diff > 1.4: # Avoid for 0.6 seconds, huck and pray
+      if time_diff > 1.6: # Avoid for 0.6 seconds, huck and pray
         self.transitionState("PD-CENTER")
         return True
     
@@ -101,7 +103,7 @@ class StateMachine:
     if portion_blue > MIN_PORTION:
       if self.current_state != "TURNING-R" and self.round_dir < 0:
         self.turns_left -= 1
-        self.scheduleStateTransition("TURNING-L", 0.8)
+        self.scheduleStateTransition("TURNING-L", 0.7 if not self.isPillarRound else 0.45)
       else:
         self.transitionState("PD-CENTER")
       return True
@@ -109,7 +111,7 @@ class StateMachine:
     if portion_orange > MIN_PORTION:
       if self.current_state != "TURNING-L" and self.round_dir > 0:
         self.turns_left -= 1
-        self.scheduleStateTransition("TURNING-R", 0.8)
+        self.scheduleStateTransition("TURNING-R", 0.7 if not self.isPillarRound else 0.45)
       else:
         self.transitionState("PD-CENTER")
       return True

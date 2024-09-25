@@ -94,6 +94,7 @@ def cycle():
   # check if the next pillar is before or after a turn marker
   if len(pillars) > 0:
     next_pillar = pillars[0]
+    next_pillar.width = min(next_pillar.width, 5)
     # for this extract a region-of-interest around the pillar
     roi_pillar_check = extract_ROI(hsv_image, [next_pillar.screen_x - int(next_pillar.width*0.35), 0], [next_pillar.screen_x + int(next_pillar.width*0.35), hsv_image.shape[1]])
     # filter out the orange and blue colors
@@ -103,7 +104,7 @@ def cycle():
       portion_blue_pillar = cv2.countNonZero(orange_blue_pillar["blue"]) / (orange_blue_pillar["blue"].shape[0] * orange_blue_pillar["blue"].shape[1])
       # check if the pillar is before or after a turn marker
       # print(portion_orange_pillar, portion_blue_pillar)
-      if portion_orange_pillar > 0.0005 or portion_blue_pillar > 0.0005:
+      if portion_orange_pillar > 0.00005 or portion_blue_pillar > 0.00005:
         print("Pillar is after a turn marker")
         pillars[0].ignore = True
 
@@ -118,7 +119,7 @@ def cycle():
 
   # This is the reference value for the single side PD control, 
   # eg. how much black should be on the left side when the car follows the left outer wall
-  REF_PORTION = 0.45
+  REF_PORTION = 0.45 if not sm.isPillarRound else 0.35
 
   # error value
   error = 0.0
@@ -146,13 +147,15 @@ def cycle():
     correction = -turn_correction
   if sm.current_state == "TURNING-R":
     correction = turn_correction
-  if (sm.current_state == "AVOIDING-R" and sm.time_diff < 0.9):
+  
+  FIRSTPAHSETIME = 0.7
+  if (sm.current_state == "AVOIDING-R" and sm.time_diff < FIRSTPAHSETIME):
     error = -turn_correction
-  if (sm.current_state == "AVOIDING-G" and sm.time_diff > 0.9):
+  if (sm.current_state == "AVOIDING-G" and sm.time_diff > FIRSTPAHSETIME):
     error = -turn_correction*0.6
-  if (sm.current_state == "AVOIDING-G" and sm.time_diff < 0.9):
+  if (sm.current_state == "AVOIDING-G" and sm.time_diff < FIRSTPAHSETIME):
     error = turn_correction
-  if (sm.current_state == "AVOIDING-R" and sm.time_diff > 0.9):
+  if (sm.current_state == "AVOIDING-R" and sm.time_diff > FIRSTPAHSETIME):
     error = turn_correction*0.6
 
   if sm.current_state == "DONE":
