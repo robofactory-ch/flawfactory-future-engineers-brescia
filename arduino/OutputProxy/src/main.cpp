@@ -203,7 +203,7 @@ void loop()
       processMessage();
     }
   }
-  steer(set_degree);
-  drive(set_speed);
+  steer(en_state ? set_degree : 0);
+  drive(en_state ? set_speed : 0);
   checkEnable();
 }
