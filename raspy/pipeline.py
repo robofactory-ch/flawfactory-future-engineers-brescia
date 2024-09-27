@@ -73,6 +73,13 @@ class Pipeline:
     blurredB = cv2.medianBlur(bMask, 5)
     # return [blurredO, blurredB]
     return {"orange": blurredO, "blue": blurredB}
+  
+  def filter_parking(self, hsv: np.ndarray):
+    pinkMin = tuple(self.configloader.get_property("filters")['PINKLO'])
+    pinkMax = tuple(self.configloader.get_property("filters")['PINKHI'])
+    pMask = cv2.inRange(hsv, pinkMin, pinkMax)
+    blurredP = cv2.medianBlur(pMask, 5)
+    return blurredP
 
   def get_pillars(self, imgIn: np.ndarray, type = "RED") -> list[Pillar]:
     """

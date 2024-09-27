@@ -13,17 +13,17 @@ def find_round_dir(black_img: np.ndarray):
 
   wall_heights = np.argmax(edges_img, axis=0)
 
-  # print("wh", wall_heights)
+  print("wh", wall_heights)
 
   differences = np.diff(wall_heights)
-  # print("diff", differences)
+  print("diff", differences)
 
 
   # count the number of positive and negative jumps in the differences
   # if there are more positive jumps, we're going counter-clockwise
   # if there are more negative jumps, we're going clockwise
   # jumps need to be at least 17 pixels high
-  MIN_JUMP = 17
+  MIN_JUMP = 9
   counter_clockwise = np.sum(differences > MIN_JUMP)
   clockwise = np.sum(differences < -MIN_JUMP)
   # print("cc", counter_clockwise)

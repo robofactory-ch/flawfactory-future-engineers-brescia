@@ -3,7 +3,7 @@ import base64
 import json
 import math
 import os
-from time import sleep, time
+from time import sleep
 import cv2
 import numpy as np
 import serial
@@ -139,7 +139,8 @@ def cycle():
   # follow the right wall, if we're going clockwise
   if sm.current_state in PD_STATES and sm.round_dir == 1:
     error = portion_black_l - REF_PORTION
-  
+
+
   correction = error * kp + (error - last_error) * kd
 
   
@@ -148,7 +149,7 @@ def cycle():
   if sm.current_state == "TURNING-R":
     correction = turn_correction
   
-  FIRSTPAHSETIME = 0.7
+  FIRSTPAHSETIME = 0.8
   if (sm.current_state == "AVOIDING-R" and sm.time_diff < FIRSTPAHSETIME):
     error = -turn_correction
   if (sm.current_state == "AVOIDING-G" and sm.time_diff > FIRSTPAHSETIME):
@@ -192,7 +193,7 @@ def cycle():
   # print(error - last_error)
 
   # viz stuff
-  cv2.putText(viz, f"State: {sm.current_state} {round(time() - sm.last_state_time, 2)}s", (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
+  cv2.putText(viz, f"State: {sm.current_state} {round(sm.time_diff, 2)}s", (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
   cv2.putText(viz, f"Errs: {round(portion_black_l-0.25, 2)} {round(portion_black_l-portion_black_r, 2)} {round(0.25-portion_black_r, 2)}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
   cv2.putText(viz, f"Correction: {round(correction, 2)}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
   cv2.putText(viz, f"{12 - sm.turns_left} / 12", (580, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
@@ -211,7 +212,9 @@ def cycle():
       "orange": orange_blue["orange"],
       "blue": orange_blue["blue"],
       "hsv_image": hsv_image,
-      "color_image": color_image
+      "color_image": color_image,
+      # "lines": pipeline.filter_OB(hsv_image)['orange'],
+      "parking": pipeline.filter_parking(hsv_image)
   }
 
 
@@ -233,7 +236,7 @@ def main():
     exit()
 
 def encode_image(image):
-    retval, buffer = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 70])
+    retval, buffer = cv2.imencode('.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), 99])
     base64_str = base64.b64encode(buffer).decode('utf-8')
     return base64_str
 

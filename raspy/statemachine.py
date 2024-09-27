@@ -1,4 +1,4 @@
-from time import time
+from fftime import time
 
 from helpers import Pillar
 
@@ -15,6 +15,10 @@ class StateMachine:
 
   _scheduled_state = None
   _time_last_avoid = -5
+
+  next_pillar = None
+
+  first_line_found = None
 
   def __init__(self, isPillarRound: bool = False) -> None:
     self.last_state_time = time()
@@ -52,7 +56,7 @@ class StateMachine:
 
 
     if self.current_state == "PD-CENTER" and self.turns_left <= 0 and self._scheduled_state is None:
-      self.scheduleStateTransition("DONE", 2.6)
+      self.scheduleStateTransition("DONE", 3.1)
       return True
     
     # Hold the current state for a minimum of x seconds
@@ -65,13 +69,15 @@ class StateMachine:
       next_pillar = pillars[0]
       # print("Next pillar:", next_pillar.color, "height:", next_pillar.height)
       if self.current_state == "PD-CENTER":
+        self.next_pillar = next_pillar
         if next_pillar.height > 30 and (not next_pillar.ignore):
           self.transitionState("TRACKING-PILLAR")
           return True
       elif self.current_state == "TRACKING-PILLAR" or self.current_state == "PD-CENTER":
-        if next_pillar.height > 70 and time() - self._time_last_avoid > 1.0:
+        if next_pillar.height > 70 and (time() - self._time_last_avoid) > 1.0:
           self._time_last_avoid = time()
           self.transitionState(f"AVOIDING-{'R' if next_pillar.color == 'RED' else 'G'}")
+          self.next_pillar = None
           return True
 
     if self.current_state == "TRACKING-PILLAR":
@@ -103,7 +109,15 @@ class StateMachine:
     if portion_blue > MIN_PORTION:
       if self.current_state != "TURNING-R" and self.round_dir < 0:
         self.turns_left -= 1
-        self.scheduleStateTransition("TURNING-L", 0.7 if not self.isPillarRound else 0.45)
+        if self.isPillarRound:
+          to = 0.45
+          if self.next_pillar:
+            is_outer = (self.next_pillar.color == "RED" and self.round_dir == -1) or (self.next_pillar.color == "GREEN" and self.round_dir == 1)
+            self.scheduleStateTransition("TURNING-L", 0.7 if is_outer else 0.2)
+          else:
+            self.scheduleStateTransition("TURNING-L", 0.5)
+        else:
+          self.scheduleStateTransition("TURNING-L", 0.7 if not self.isPillarRound else 0.45)
       else:
         self.transitionState("PD-CENTER")
       return True
@@ -111,7 +125,15 @@ class StateMachine:
     if portion_orange > MIN_PORTION:
       if self.current_state != "TURNING-L" and self.round_dir > 0:
         self.turns_left -= 1
-        self.scheduleStateTransition("TURNING-R", 0.7 if not self.isPillarRound else 0.45)
+        if self.isPillarRound:
+          to = 0.45
+          if self.next_pillar:
+            is_outer = (self.next_pillar.color == "RED" and self.round_dir == -1) or (self.next_pillar.color == "GREEN" and self.round_dir == 1)
+            self.scheduleStateTransition("TURNING-R", 0.7 if is_outer else 0.2)
+          else:
+            self.scheduleStateTransition("TURNING-R", 0.5)
+        else:
+          self.scheduleStateTransition("TURNING-R", 0.7 if not self.isPillarRound else 0.45)
       else:
         self.transitionState("PD-CENTER")
       return True
