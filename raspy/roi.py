@@ -103,11 +103,23 @@ def cycle():
       portion_orange_pillar = cv2.countNonZero(orange_blue_pillar["orange"]) / (orange_blue_pillar["orange"].shape[0] * orange_blue_pillar["orange"].shape[1])
       portion_blue_pillar = cv2.countNonZero(orange_blue_pillar["blue"]) / (orange_blue_pillar["blue"].shape[0] * orange_blue_pillar["blue"].shape[1])
       # check if the pillar is before or after a turn marker
-      # print(portion_orange_pillar, portion_blue_pillar)
+      # print("pillar check", portion_orange_pillar, portion_blue_pillar)
       if portion_orange_pillar > 0.00005 or portion_blue_pillar > 0.00005:
-        print("Pillar is after a turn marker")
+        # print("Pillar is after a turn marker")
         pillars[0].ignore = True
-
+      try:
+        roi_straight_check = extract_ROI(rgbl["red"] if next_pillar.color == "RED" else rgbl["green"], [next_pillar.screen_x - int(next_pillar.width*2), 0], [next_pillar.screen_x + int(next_pillar.width*2), hsv_image.shape[1]])
+        lower = 30
+        upper = 90
+        edges_img = cv2.Canny(roi_straight_check, lower, upper, 3)
+        heights = np.argmax(edges_img, axis=0)
+        print(heights)
+        print("pillar diff", np.max(heights) - np.min(heights))
+        if np.max(heights) - np.min(heights) > 3:
+          print("big correction")
+          pillars[0].big_correction = True
+      except:
+        pass
   # A state machine is used to model the car's behavior
   # This checks if the car should transition to a new state, and if so, transitions
   # states may be PD-CENTER, PD-RIGHT, PD-LEFT, TURNING-L, TURNING-R, etc.
@@ -119,12 +131,19 @@ def cycle():
 
   # This is the reference value for the single side PD control, 
   # eg. how much black should be on the left side when the car follows the left outer wall
-  REF_PORTION = 0.45 if not sm.isPillarRound else 0.35
+
+  # pillar_ref = 0.35
+  # if sm.next_pillar:
+  #   if sm.next_pillar.ignore:
+  #     pillar_ref = 0.48
+    
+
+  REF_PORTION = 0.45 if not sm.isPillarRound else 0.45
 
   # error value
   error = 0.0
 
-  turn_correction = 0.75
+  turn_correction = 0.75 if not sm.isPillarRound else 1.0
 
   PD_STATES = ["PD-CENTER", "PD-RIGHT", "PD-LEFT"]
 
@@ -150,14 +169,18 @@ def cycle():
     correction = turn_correction
   
   FIRSTPAHSETIME = 0.8
+  if len(pillars) > 0:
+    if pillars[0].big_correction:
+      FIRSTPAHSETIME = 1.2
+
   if (sm.current_state == "AVOIDING-R" and sm.time_diff < FIRSTPAHSETIME):
-    error = -turn_correction
+    error = -0.75
   if (sm.current_state == "AVOIDING-G" and sm.time_diff > FIRSTPAHSETIME):
-    error = -turn_correction*0.6
+    error = -0.75*0.6
   if (sm.current_state == "AVOIDING-G" and sm.time_diff < FIRSTPAHSETIME):
-    error = turn_correction
+    error = 0.75
   if (sm.current_state == "AVOIDING-R" and sm.time_diff > FIRSTPAHSETIME):
-    error = turn_correction*0.6
+    error = 0.75*0.6
 
   if sm.current_state == "DONE":
     correction = 0.0
@@ -185,7 +208,7 @@ def cycle():
 
 
   if ser:
-    message = "d" + str(int(80)) + "\n"
+    message = "d" + str(int(100)) + "\n"
     ser.write(message.encode())
     message = "s " + str(int(steering_angle)) + "\n"
     ser.write(message.encode())
@@ -213,8 +236,8 @@ def cycle():
       "blue": orange_blue["blue"],
       "hsv_image": hsv_image,
       "color_image": color_image,
-      # "lines": pipeline.filter_OB(hsv_image)['orange'],
-      "parking": pipeline.filter_parking(hsv_image)
+      # "lines": pipeline.filter_OB(hsv_image)['orange'],
+      # "parking": pipeline.filter_parking(hsv_image)
   }
 
 
