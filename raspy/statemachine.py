@@ -16,9 +16,13 @@ class StateMachine:
   _scheduled_state = None
   _time_last_avoid = -5
 
+  _scheduled_state_block = False
+
   next_pillar = None
 
   first_line_found = None
+
+  avoid_big = False
 
   def __init__(self, isPillarRound: bool = False) -> None:
     self.last_state_time = time()
@@ -28,8 +32,9 @@ class StateMachine:
     self.current_state = new_state
     self.last_state_time = time()
   
-  def scheduleStateTransition(self, new_state: str, time_diff: float):
+  def scheduleStateTransition(self, new_state: str, time_diff: float, block=True):
     self._scheduled_state = (new_state, time() + time_diff)
+    self._scheduled_state_block = block
 
   def shouldTransitionState(self, portion_orange: float, portion_blue: float, pillars: list[Pillar]):
     time_diff = time() - self.last_state_time
@@ -42,7 +47,8 @@ class StateMachine:
         self.transitionState(new_state)
         self._scheduled_state = None
         return True
-      return False
+      if self._scheduled_state_block:
+        return False
     
     if self.current_state == "STARTING":
       if abs(self.round_dir) > 10:
@@ -56,7 +62,7 @@ class StateMachine:
 
 
     if self.current_state == "PD-CENTER" and self.turns_left <= 0 and self._scheduled_state is None:
-      self.scheduleStateTransition("DONE", 3.1)
+      self.scheduleStateTransition("DONE", 3.1, False)
       return True
     
     # Hold the current state for a minimum of x seconds
@@ -70,12 +76,12 @@ class StateMachine:
       # print("Next pillar:", next_pillar.color, "height:", next_pillar.height)
       if self.current_state == "PD-CENTER":
         self.next_pillar = next_pillar
-        if next_pillar.height > 38 and (not next_pillar.ignore):
+        if next_pillar.height*next_pillar.width > 190 and (not next_pillar.ignore):
           self.transitionState("TRACKING-PILLAR")
           return True
       elif self.current_state == "TRACKING-PILLAR" or self.current_state == "PD-CENTER":
-        if next_pillar.height > 73 and (time() - self._time_last_avoid) > 1.0:
-          self._time_last_avoid = time()
+        if next_pillar.height*next_pillar.width > 530 and (time() - self._time_last_avoid) > 1.0:
+          # self._time_last_avoid = time()
           self.transitionState(f"AVOIDING-{'R' if next_pillar.color == 'RED' else 'G'}")
           self.next_pillar = None
           return True
@@ -88,8 +94,10 @@ class StateMachine:
         return True
 
     if self.current_state == "AVOIDING-R" or self.current_state == "AVOIDING-G":
-      if time_diff > 2.4: # Avoid for 0.6 seconds, huck and pray
+      if time_diff > 2.5: # Avoid for 0.6 seconds, huck and pray
         self.transitionState("PD-CENTER")
+        self._time_last_avoid = time()
+        self.avoid_big = False
         return True
     
 

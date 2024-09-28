@@ -27,8 +27,8 @@
   },
   "ROI": {},
   "PD": {
-    "kp": 5.0,
-    "kd": 10.0
+    "kp": 4.5,
+    "kd": 8.0
   },
   "ArduinoSerialPort": "/dev/ttyUSB0"
 }

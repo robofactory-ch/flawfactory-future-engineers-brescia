@@ -98,6 +98,9 @@ def cycle():
     # for this extract a region-of-interest around the pillar
     roi_pillar_check = extract_ROI(hsv_image, [next_pillar.screen_x - int(next_pillar.width*0.35), 0], [next_pillar.screen_x + int(next_pillar.width*0.35), hsv_image.shape[1]])
     # filter out the orange and blue colors
+
+    # print("A=", pillars[0].width * pillars[0].height)
+
     if not roi_pillar_check.shape[0] == 0 and not roi_pillar_check.shape[1] == 0:
       orange_blue_pillar = pipeline.filter_OB(roi_pillar_check)
       portion_orange_pillar = cv2.countNonZero(orange_blue_pillar["orange"]) / (orange_blue_pillar["orange"].shape[0] * orange_blue_pillar["orange"].shape[1])
@@ -107,19 +110,7 @@ def cycle():
       if portion_orange_pillar > 0.00005 or portion_blue_pillar > 0.00005:
         # print("Pillar is after a turn marker")
         pillars[0].ignore = True
-      try:
-        roi_straight_check = extract_ROI(rgbl["red"] if next_pillar.color == "RED" else rgbl["green"], [next_pillar.screen_x - int(next_pillar.width*2), 0], [next_pillar.screen_x + int(next_pillar.width*2), hsv_image.shape[1]])
-        lower = 30
-        upper = 90
-        edges_img = cv2.Canny(roi_straight_check, lower, upper, 3)
-        heights = np.argmax(edges_img, axis=0)
-        print(heights)
-        print("pillar diff", np.max(heights) - np.min(heights))
-        if np.max(heights) - np.min(heights) > 3:
-          print("big correction")
-          pillars[0].big_correction = True
-      except:
-        pass
+      
   # A state machine is used to model the car's behavior
   # This checks if the car should transition to a new state, and if so, transitions
   # states may be PD-CENTER, PD-RIGHT, PD-LEFT, TURNING-L, TURNING-R, etc.
@@ -168,19 +159,19 @@ def cycle():
   if sm.current_state == "TURNING-R":
     correction = turn_correction
   
-  FIRSTPAHSETIME = 0.8
-  if len(pillars) > 0:
-    if pillars[0].big_correction:
-      FIRSTPAHSETIME = 1.2
+  FIRSTPAHSETIME = 0.95
+  # if len(pillars) > 0:
+  #   if sm.avoid_big or True:
+  #     FIRSTPAHSETIME = 1.2
 
   if (sm.current_state == "AVOIDING-R" and sm.time_diff < FIRSTPAHSETIME):
-    error = -0.75
+    correction = 0.9
   if (sm.current_state == "AVOIDING-G" and sm.time_diff > FIRSTPAHSETIME):
-    error = -0.75*0.6
+    correction = 0.9*0.9
   if (sm.current_state == "AVOIDING-G" and sm.time_diff < FIRSTPAHSETIME):
-    error = 0.75
+    correction = -0.9
   if (sm.current_state == "AVOIDING-R" and sm.time_diff > FIRSTPAHSETIME):
-    error = 0.75*0.6
+    correction = -0.9*0.9
 
   if sm.current_state == "DONE":
     correction = 0.0
